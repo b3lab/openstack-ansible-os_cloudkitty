@@ -1,5 +1,6 @@
 ---
-# Copyright 2016, Walmart Stores, Inc.
+# Copyright 2016, Rackspace US, Inc.
+# Copyright 2017, SUSE LINUX GmbH.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,34 +14,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-### APT Cache options
-cache_timeout: 600
-
-# Common apt packages
+# Common packages
 cloudkitty_distro_packages:
   - rpcbind
   - apache2
   - apache2-utils
-  - libapache2-mod-wsgi
-  - libffi-dev
-  - libssl-dev
-  - libxml2-dev
-  - libxslt1-dev
+  - apache2-mod_wsgi
+  - libffi-devel
+  - libopenssl-devel
+  - libxml2-devel
+  - libxslt-devel
+  - which
 
 cloudkitty_test_distro_packages:
-  - git
+  - git-core
 
 cloudkitty_system_service_name: apache2
 
 cloudkitty_apache_config:
-  - { src: "cloudkitty-ports.conf.j2", dest: "/etc/apache2/ports.conf" }
-  - { src: "cloudkitty-httpd.conf.j2", dest: "/etc/apache2/sites-available/cloudkitty-httpd.conf" }
+  - { src: "cloudkitty-ports.conf.j2", dest: "/etc/apache2/conf.d/ports.conf" }
+  - { src: "cloudkitty-httpd.conf.j2", dest: "/etc/apache2/conf.d/cloudkitty-httpd.conf" }
 
 cloudkitty_apache_default_sites:
-  - "/etc/apache2/sites-enabled/000-default.conf"
+  - "/etc/apache2/conf.d/gitweb.conf"
 
-cloudkitty_apache_site_available: "/etc/apache2/sites-available/cloudkitty-httpd.conf"
-aodh_apache_site_enabled: "/etc/apache2/sites-enabled/cloudkitty-httpd.conf"
+cloudkitty_apache_conf: "/etc/apache2/httpd.conf"
+cloudkitty_apache_security_conf: "{{ cloudkitty_apache_conf }}"
 
-cloudkitty_apache_conf: "/etc/apache2/apache2.conf"
-cloudkitty_apache_security_conf: "/etc/apache2/conf-available/security.conf"
+cloudkitty_apache_modules:
+  - name: "authz_host"
+    state: "present"
+  - name: "access_compat"
+    state: "present"
+  - name: "version"
+    state: "present"

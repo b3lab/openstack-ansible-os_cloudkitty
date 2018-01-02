@@ -17,14 +17,28 @@
 
 - name: Install distro packages
   package:
-    pkg: "{{ cloudkitty_distro_packages }}"
+    name: "{{ item }}"
     state: "{{ cloudkitty_package_state }}"
-    update_cache: "{{ (ansible_pkg_mgr == 'apt') | ternary('yes', omit) }}"
+    update_cache: "{{ (ansible_pkg_mgr in ['apt', 'zypper']) | ternary('yes', omit) }}"
     cache_valid_time: "{{ (ansible_pkg_mgr == 'apt') | ternary(cache_timeout, omit) }}"
   register: install_packages
   until: install_packages|success
   retries: 5
   delay: 2
+  with_items: "{{ cloudkitty_distro_packages }}"
+
+- name: Install distro packages for testing
+  package:
+    name: "{{ item }}"
+    state: "{{ cloudkitty_package_state }}"
+    update_cache: "{{ (ansible_pkg_mgr in ['apt', 'zypper']) | ternary('yes', omit) }}"
+    cache_valid_time: "{{ (ansible_pkg_mgr == 'apt') | ternary(cache_timeout, omit) }}"
+  register: install_packages
+  until: install_packages|success
+  retries: 5
+  delay: 2
+  with_items: "{{ cloudkitty_test_distro_packages }}"
+  when: install_test_packages|bool
 
 - name: Create developer mode constraint file
   copy:
@@ -34,9 +48,6 @@
       {{ item }}
       {% endfor %}
   when: cloudkitty_developer_mode | bool
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
 
 - name: Install requires pip packages
   pip:
@@ -50,9 +61,6 @@
   until: install_packages|success
   retries: 5
   delay: 2
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
 
 - name: Retrieve checksum for venv download
   uri:
@@ -60,9 +68,6 @@
     return_content: yes
   register: cloudkitty_venv_checksum
   when: cloudkitty_venv_download | bool
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
 
 - name: Attempt venv download
   get_url:
@@ -71,28 +76,20 @@
     checksum: "sha1:{{ cloudkitty_venv_checksum.content | trim }}"
   register: cloudkitty_get_venv
   when: cloudkitty_venv_download | bool
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
 
 - name: Remove existing venv
   file:
     path: "{{ cloudkitty_bin | dirname }}"
     state: absent
   when: cloudkitty_get_venv | changed
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
 
 - name: Create cloudkitty venv dir
   file:
     path: "{{ cloudkitty_bin | dirname }}"
     state: directory
+    mode: "0755"
   register: cloudkitty_venv_dir
   when: cloudkitty_get_venv | changed
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
 
 - name: Unarchive pre-built venv
   unarchive:
@@ -102,9 +99,6 @@
   when: cloudkitty_get_venv | changed
   notify:
     - Restart cloudkitty services
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
 
 - name: Install pip packages
   pip:
@@ -123,14 +117,23 @@
   when: cloudkitty_get_venv | failed or cloudkitty_get_venv | skipped
   notify:
     - Restart cloudkitty services
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
+
+- name: CentOS remove python from path first
+  file:
+    path:  "{{ cloudkitty_bin | dirname }}/bin/python2.7"
+    state: "absent"
+  when:
+    - ansible_pkg_mgr in ['yum', 'dnf']
+    - cloudkitty_get_venv | changed
 
 - name: Update virtualenv path
   command: >
     virtualenv-tools --update-path=auto --reinitialize {{ cloudkitty_bin | dirname }}
   when: cloudkitty_get_venv | changed
-  tags:
-    - cloudkitty-install
-    - cloudkitty-pip-packages
+
+- name: Record the venv tag deployed
+  ini_file:
+    dest: "/etc/ansible/facts.d/openstack_ansible.fact"
+    section: aodh
+    option: venv_tag
+    value: "{{ cloudkitty_venv_tag }}"

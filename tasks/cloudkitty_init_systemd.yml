@@ -36,7 +36,7 @@
 - name: Create tempfile.d entry
   template:
     src: "cloudkitty-systemd-tempfiles.j2"
-    dest: "/etc/tmpfiles.d/cloudkitty.conf"
+    dest: "/etc/tmpfiles.d/openstack-{{ item.value.service_name }}.conf"
     mode: "0644"
     owner: "root"
     group: "root"

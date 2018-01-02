@@ -21,84 +21,91 @@ debug: False
 cloudkitty_package_state: "latest"
 cloudkitty_pip_package_state: "latest"
 
-cloudkitty_service_user_name: cloudkitty
+## Toggle developer mode
+cloudkitty_developer_mode: false
 
-cloudkitty_rabbitmq_userid: cloudkitty
-cloudkitty_rabbitmq_vhost: /cloudkitty
-cloudkitty_rabbitmq_port: 5672
-cloudkitty_rabbitmq_servers: 127.0.0.1
-cloudkitty_rabbitmq_use_ssl: False
+## The git source/branch
+cloudkitty_git_repo: https://git.openstack.org/openstack/cloudkitty
+cloudkitty_git_install_branch: stable/pike
 
-cloudkitty_system_group_name: cloudkitty
-cloudkitty_system_user_name: cloudkitty
-cloudkitty_system_comment: meow
-cloudkitty_system_shell: /bin/false
-cloudkitty_system_home_folder: "/var/lib/{{ cloudkitty_system_user_name }}"
+## The packages to build from source (used in developer mode)
+aodh_developer_constraints:
+  - "git+{{ cloudkitty_git_repo }}@{{ cloudkitty_git_install_branch }}#egg=cloudkitty"
 
+# Name of the virtual env to deploy into
 cloudkitty_venv_tag: untagged
-cloudkitty_bin: "/openstack/venvs/cloudkitty-{{ cloudkitty_venv_tag }}/bin"
+cloudkitty_bin: "/openstack/venvs/cloudkitty-{{ aodh_venv_tag }}/bin"
 
 # venv_download, even when true, will use the fallback method of building the
 # venv from scratch if the venv download fails.
 cloudkitty_venv_download: "{{ not cloudkitty_developer_mode | bool }}"
+# URL of the pre-built virtualenv
 cloudkitty_venv_download_url: http://127.0.0.1/venvs/untagged/ubuntu/cloudkitty.tgz
 
-cloudkitty_git_repo: https://git.openstack.org/openstack/cloudkitty
-cloudkitty_git_install_branch: master
+## System info
+cloudkitty_system_user_name: cloudkitty
+cloudkitty_system_group_name: cloudkitty
+cloudkitty_system_shell: /bin/false
+cloudkitty_system_comment: cloudkitty system user
+cloudkitty_system_user_home: "/var/lib/{{ cloudkitty_system_user_name }}"
 
-cloudkitty_developer_constraints:
-  - "git+{{ cloudkitty_git_repo }}@{{ cloudkitty_requirements_git_install_branch }}#egg=cloudkitty"
+## DB info
+cloudkitty_database_name: aodh
+cloudkitty_database_user: aodh
+cloudkitty_db_type: "mysql+pymysql"
+cloudkitty_db_address: localhost
+cloudkitty_connection_string: "{{ cloudkitty_db_type }}://{{ cloudkitty_database_user }}:{{ cloudkitty_container_db_password }}@{{ cloudkitty_db_address }}/{{ cloudkitty_database_name }}?charset=utf8"
 
-cloudkitty_developer_mode: false
-cloudkitty_notification_topics: notifications
-cloudkitty_services: compute
-cloudkitty_collector: ceilometer
-cloudkitty_service_project_domain_id: default
-cloudkitty_service_project_name: "service"
-cloudkitty_service_user_domain_id: default
+## RabbitMQ info
+cloudkitty_rabbitmq_userid: aodh
+cloudkitty_rabbitmq_vhost: /aodh
+cloudkitty_rabbitmq_servers: 127.0.0.1
+cloudkitty_rabbitmq_port: 5672
+cloudkitty_rabbitmq_use_ssl: False
 
-cloudkitty_user_domain_name: Default
-cloudkitty_keystone_auth_plugin: password
-cloudkitty_output_backend: cloudkitty.backend.file.FileBackend
-cloudkitty_output_pipeline: osrf
-cloudkitty_output_basepath: /var/cloudkitty/reports
+## Apache setup
+cloudkitty_apache_log_level: info
+cloudkitty_apache_servertokens: "Prod"
+cloudkitty_apache_serversignature: "Off"
+cloudkitty_wsgi_threads: 10
+cloudkitty_wsgi_processes_max: 2
+cloudkitty_wsgi_processes: "{{ [[ansible_processor_vcpus|default(1), 1] | max * 2, cloudkitty_wsgi_processes_max] | min }}"
 
-cloudkitty_galera_database: cloudkitty
-cloudkitty_galera_user: cloudkitty
+#Cloudkitty services info
+cloudkitty_role_name: admin
 
 ## Service Type and Data
 cloudkitty_service_region: RegionOne
+cloudkitty_service_endpoint_type: internalURL
 cloudkitty_service_name: cloudkitty
 cloudkitty_service_port: 8089
 cloudkitty_service_proto: http
-cloudkitty_service_publicuri_proto: "{{ openstack_service_publicuri_proto | default(cloudkitty_service_proto) }}"
-cloudkitty_service_adminuri_proto: "{{ openstack_service_adminuri_proto | default(cloudkitty_service_proto) }}"
-cloudkitty_service_internaluri_proto: "{{ openstack_service_internaluri_proto | default(cloudkitty_service_proto) }}"
-cloudkitty_service_publicuri: "{{ cloudkitty_service_publicuri_proto }}://{{ external_lb_vip_address }}:{{ cloudkitty_service_port }}"
-cloudkitty_service_publicurl: "{{ cloudkitty_service_publicuri }}/"
-cloudkitty_service_adminuri: "{{ cloudkitty_service_adminuri_proto }}://{{ internal_lb_vip_address }}:{{ cloudkitty_service_port }}"
-cloudkitty_service_adminurl: "{{ cloudkitty_service_adminuri }}/"
-cloudkitty_service_internaluri: "{{ cloudkitty_service_internaluri_proto }}://{{ internal_lb_vip_address }}:{{ cloudkitty_service_port }}"
-cloudkitty_service_internalurl: "{{ cloudkitty_service_internaluri }}/"
+cloudkitty_service_type: rating
+cloudkitty_service_description: "Rating"
+cloudkitty_service_project_domain_id: default
+cloudkitty_service_user_domain_id: default
+cloudkitty_service_user_name: cloudkitty
+cloudkitty_keystone_auth_plugin: "{{ cloudkitty_keystone_auth_type }}"
+cloudkitty_keystone_auth_type: v3password
+cloudkitty_service_tenant_name: service
+cloudkitty_service_project_name: service
+cloudkitty_service_publicuri: "{{ cloudkitty_service_proto }}://{{ external_lb_vip_address }}:{{ cloudkitty_service_port }}"
+cloudkitty_service_publicurl: "{{ cloudkitty_service_publicuri }}"
+cloudkitty_service_internaluri: "{{ cloudkitty_service_proto }}://{{ internal_lb_vip_address }}:{{ cloudkitty_service_port }}"
+cloudkitty_service_internalurl: "{{ cloudkitty_service_internaluri }}"
+cloudkitty_service_adminuri: "{{ cloudkitty_service_proto }}://{{ internal_lb_vip_address }}:{{ cloudkitty_service_port }}"
+cloudkitty_service_adminurl: "{{ cloudkitty_service_adminuri }}"
 
-cloudkitty_cloudkitty_conf_overrides: {}
-cloudkitty_policy_overrides: {}
-cloudkitty_api_paste_ini_overrides: {}
+cloudkitty_service_in_ldap: false
 
-cloudkitty_api_init_overrides: {}
-cloudkitty_processor_init_overrides: {}
+# cloudkitty packages that must be installed before anything else
+cloudkitty_requires_pip_packages:
+  - virtualenv
+  - virtualenv-tools
+  - python-keystoneclient
+  - httplib2
 
-## Service Name-Group Mapping
-cloudkitty_services:
-  cloudkitty-api:
-    group: cloudkitty_api
-    service_name: cloudkitty-api
-    init_config_overrides: "{{ cloudkitty_api_init_overrides }}"
-  cloudkitty-processor:
-    group: cloudkitty_api
-    service_name: cloudkitty-processor
-    init_config_overrides: "{{ cloudkitty_processor_init_overrides }}"
-
+# Common pip packages
 cloudkitty_pip_packages:
   - cloudkitty
   - cryptography
@@ -106,18 +113,126 @@ cloudkitty_pip_packages:
   - PyMySQL
   - python-memcached
 
-cloudkitty_requires_pip_packages:
-  - virtualenv
-  - virtualenv-tools
-  - python-keystoneclient
-  - httplib2
+cloudkitty_processor_init_overrides: {}
+
+cloudkitty_services:
+  cloudkitty-processor:
+    group: cloudkitty_rating_processor
+    service_name: cloudkitty-processor
+    init_config_overrides: "{{ cloudkitty_processor_init_overrides }}"
+
+cloudkitty_required_secrets:
+  - memcached_encryption_key
+  - cloudkitty_container_db_password
+  - cloudkitty_rabbitmq_password
+  - cloudkitty_service_password
+
+install_test_packages: False
+
+cloudkitty_role_project_group: cloudkitty_all
+
+## Tunable overrides
+cloudkitty_policy_overrides: {}
+cloudkitty_cloudkitty_conf_overrides:: {}
+cloudkitty_api_paste_ini_overrides:: {}
+
+#cloudkkitty_service_user_name: cloudkitty
+
+#cloudkitty_rabbitmq_userid: cloudkitty
+#cloudkitty_rabbitmq_vhost: /cloudkitty
+#cloudkitty_rabbitmq_port: 5672
+#cloudkitty_rabbitmq_servers: 127.0.0.1
+#cloudkitty_rabbitmq_use_ssl: False
+
+#cloudkitty_system_group_name: cloudkitty
+#cloudkitty_system_user_name: cloudkitty
+#cloudkitty_system_comment: meow
+#cloudkitty_system_shell: /bin/false
+#cloudkitty_system_home_folder: "/var/lib/{{ cloudkitty_system_user_name }}"
+
+#cloudkitty_venv_tag: untagged
+#cloudkitty_bin: "/openstack/venvs/cloudkitty-{{ cloudkitty_venv_tag }}/bin"
+
+# venv_download, even when true, will use the fallback method of building the
+# venv from scratch if the venv download fails.
+#cloudkitty_venv_download: "{{ not cloudkitty_developer_mode | bool }}"
+#cloudkitty_venv_download_url: http://127.0.0.1/venvs/untagged/ubuntu/cloudkitty.tgz
+
+#cloudkitty_git_repo: https://git.openstack.org/openstack/cloudkitty
+#cloudkitty_git_install_branch: master
+
+#cloudkitty_developer_constraints:
+ # - "git+{{ cloudkitty_git_repo }}@{{ cloudkitty_requirements_git_install_branch }}#egg=cloudkitty"
+
+#cloudkitty_developer_mode: false
+cloudkitty_notification_topics: notifications
+#cloudkitty_services: compute
+cloudkitty_collector: gnocchi
+#cloudkitty_service_project_domain_id: default
+#cloudkitty_service_project_name: "service"
+#cloudkitty_service_user_domain_id: default
+
+#cloudkitty_user_domain_name: Default
+#cloudkitty_keystone_auth_plugin: password
+cloudkitty_output_backend: cloudkitty.backend.file.FileBackend
+cloudkitty_output_pipeline: osrf
+cloudkitty_output_basepath: /var/cloudkitty/reports
+
+#cloudkitty_galera_database: cloudkitty
+#cloudkitty_galera_user: cloudkitty
+
+## Service Type and Data
+#cloudkitty_service_region: RegionOne
+#cloudkitty_service_name: cloudkitty
+#cloudkitty_service_port: 8089
+#cloudkitty_service_proto: http
+#cloudkitty_service_publicuri_proto: "{{ openstack_service_publicuri_proto | default(cloudkitty_service_proto) }}"
+#cloudkitty_service_adminuri_proto: "{{ openstack_service_adminuri_proto | default(cloudkitty_service_proto) }}"
+#cloudkitty_service_internaluri_proto: "{{ openstack_service_internaluri_proto | default(cloudkitty_service_proto) }}"
+#cloudkitty_service_publicuri: "{{ cloudkitty_service_publicuri_proto }}://{{ external_lb_vip_address }}:{{ cloudkitty_service_port }}"
+#cloudkitty_service_publicurl: "{{ cloudkitty_service_publicuri }}/"
+#cloudkitty_service_adminuri: "{{ cloudkitty_service_adminuri_proto }}://{{ internal_lb_vip_address }}:{{ cloudkitty_service_port }}"
+#cloudkitty_service_adminurl: "{{ cloudkitty_service_adminuri }}/"
+#cloudkitty_service_internaluri: "{{ cloudkitty_service_internaluri_proto }}://{{ internal_lb_vip_address }}:{{ cloudkitty_service_port }}"
+#cloudkitty_service_internalurl: "{{ cloudkitty_service_internaluri }}/"
+
+#cloudkitty_cloudkitty_conf_overrides: {}
+#cloudkitty_policy_overrides: {}
+#cloudkitty_api_paste_ini_overrides: {}
+
+#cloudkitty_api_init_overrides: {}
+#cloudkitty_processor_init_overrides: {}
+
+## Service Name-Group Mapping
+#cloudkitty_services:
+#  cloudkitty-api:
+#    group: cloudkitty_api
+#    service_name: cloudkitty-api
+#    init_config_overrides: "{{ cloudkitty_api_init_overrides }}"
+#  cloudkitty-processor:
+#    group: cloudkitty_api
+#    service_name: cloudkitty-processor
+#    init_config_overrides: "{{ cloudkitty_processor_init_overrides }}"
+
+#cloudkitty_pip_packages:
+ # - cloudkitty
+  #- cryptography
+  #- msgpack-python
+  #- PyMySQL
+  #- python-memcached
+
+#cloudkitty_requires_pip_packages:
+ # - virtualenv
+  #- virtualenv-tools
+  #- python-keystoneclient
+  #- httplib2
 
 # This variable is used by the repo_build process to determine
 # which host group to check for members of before building the
 # pip packages required by this role. The value is picked up
 # by the py_pkgs lookup.
-cloudkitty_role_project_group: cloudkitty_all
+#cloudkitty_role_project_group: cloudkitty_all
 
 # The messaging driver to use, defaults to rabbit. Other drivers
 # include qpid and zmq. (string value)
-cloudkitty_database_connection: "mysql+pymysql://{{ cloudkitty_galera_user }}:{{ cloudkitty_container_mysql_password }}@{{ cloudkitty_galera_address }}/{{ cloudkitty_galera_database }}?charset=utf8"
+#cloudkitty_database_connection: "mysql+pymysql://{{ cloudkitty_galera_user }}:{{ cloudkitty_container_mysql_password }}@{{ cloudkitty_galera_address }}/{{ cloudkitty_galera_database }}?charset=utf8"

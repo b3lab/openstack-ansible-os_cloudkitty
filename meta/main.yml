@@ -22,11 +22,7 @@ galaxy_info:
   platforms:
     - name: Ubuntu
       versions:
-        - trusty
         - xenial
-    - name: EL
-      versions:
-        - 7
   categories:
     - cloud
     - python
@@ -34,6 +30,9 @@ galaxy_info:
     - development
     - openstack
 dependencies:
-  - apt_package_pinning
+  - pip_install
+  - role: apt_package_pinning
+    when:
+      - ansible_pkg_mgr == 'apt'
   - galera_client
   - openstack_openrc

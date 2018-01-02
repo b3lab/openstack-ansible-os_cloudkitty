@@ -1,5 +1,4 @@
 ---
-# Copyright 2016, Walmart Stores, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,5 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Common packages
 cloudkitty_distro_packages:
+  - rpcbind
+  - httpd
+  - httpd-tools
+  - mod_wsgi
+  - libffi-devel
+  - openssl-devel
+  - libxml2-devel
+  - libxslt-devel
+  - which
+
+cloudkitty_test_distro_packages:
   - git
+
+cloudkitty_system_service_name: httpd
+
+cloudkitty_apache_config:
+  - { src: "cloudkitty-ports.conf.j2", dest: "/etc/httpd/conf.d/ports.conf" }
+  - { src: "cloudkitty-httpd.conf.j2", dest: "/etc/httpd/conf.d/cloudkitty-httpd.conf" }
+
+cloudkitty_apache_default_sites:
+  - "/etc/httpd/conf.d/userdir.conf"
+  - "/etc/httpd/conf.d/welcome.conf"
+  - "/etc/httpd/conf.d/ssl.conf"
+
+cloudkitty_apache_conf: "/etc/httpd/conf/httpd.conf"
+cloudkitty_apache_security_conf: "{{ cloudkitty_apache_conf }}"

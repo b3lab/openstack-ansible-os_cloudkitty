@@ -1,5 +1,4 @@
 ---
-# Copyright 2016, Rackspace US, Inc.
 #
 # (C) 2016 Michael Rice <michael.rice@rackspace.com>
 #
@@ -15,20 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Ensure cloudkitty rating role
+- name: Ensure cloudkitty service
   keystone:
-    command: "ensure_role"
-    role_name: "rating"
+    command: "ensure_service"
+    endpoint: "{{ keystone_service_adminurl }}"
     login_user: "{{ keystone_admin_user_name }}"
     login_password: "{{ keystone_auth_admin_password }}"
     login_project_name: "{{ keystone_admin_tenant_name }}"
-    endpoint: "{{ keystone_service_adminurl }}"
+    service_name: "{{ cloudkitty_service_name }}"
+    service_type: "{{ cloudkitty_service_type }}"
+    description: "{{ cloudkitty_service_description }}"
     insecure: "{{ keystone_service_adminuri_insecure }}"
-  tags:
-    - cloudkitty-domain
-    - cloudkitty-domain-role
-    - cloudkitty-domain-setup
-    - cloudkitty-config
+  register: add_service
+  until: add_service|success
+  retries: 5
+  delay:2
 
 - name: Ensure cloudkitty user
   keystone:
@@ -38,53 +38,55 @@
     login_password: "{{ keystone_auth_admin_password }}"
     login_project_name: "{{ keystone_admin_tenant_name }}"
     user_name: "{{ cloudkitty_service_user_name }}"
-    domain_name: "{{ cloudkitty_user_domain_name }}"
+    tenant_name: "{{ cloudkitty_service_tenant_name }}"
+    role_name: "{{ cloudkitty_role_name }}"
     password: "{{ cloudkitty_service_password }}"
     insecure: "{{ keystone_service_adminuri_insecure }}"
-  tags:
-    - cloudkitty-domain
-    - cloudkitty-domain-setup
-    - cloudkitty-config
-    - cloudkitty-command-bin
+  register: add_service
+  when: not cloudkitty_service_in_ldap | bool
+  until: add_service|success
+  retries: 5
+  delay: 10
 
-- name: Add cloudkitty user to service admin role
+- name: Ensure cloudkitty user to admin role
   keystone:
     command: "ensure_user_role"
+    endpoint: "{{ keystone_service_adminurl }}"
+    login_user: "{{ keystone_admin_user_name }}"
+    login_password: "{{ keystone_auth_admin_password }}"
+    login_project_name: "{{ keystone_admin_tenant_name }}"
     user_name: "{{ cloudkitty_service_user_name }}"
-    project_name: "service"
-    role_name: "admin"
-    login_user: "{{ keystone_admin_user_name }}"
-    login_password: "{{ keystone_auth_admin_password }}"
-    login_project_name: "{{ keystone_admin_tenant_name }}"
-    endpoint: "{{ keystone_service_adminurl }}"
+    tenant_name: "{{ cloudkitty_service_project_name }}"
+    role_name: "{{ cloudkitty_role_name }}"
     insecure: "{{ keystone_service_adminuri_insecure }}"
-  tags:
-    - cloudkitty-domain
-    - cloudkitty-domain-setup
-    - cloudkitty-config
-    - cloudkitty-command-bin
+  register: add_admin_role
+  when: not cloudkitty_service_in_ldap | bool
+  until: add_admin_role|success
+  retries: 5
+  delay: 10
 
-- name: Ensure cloudkitty service
+- name: Ensure cloudkitty rating role
   keystone:
-    command: "ensure_service"
-    service_name: "cloudkitty"
-    service_type: "rating"
+    command: "ensure_role"
+    role_name: "rating"
     login_user: "{{ keystone_admin_user_name }}"
     login_password: "{{ keystone_auth_admin_password }}"
     login_project_name: "{{ keystone_admin_tenant_name }}"
+    user_name: "{{ cloudkitty_service_user_name }}"
+    tenant_name: "{{ cloudkitty_service_project_name }}"
     endpoint: "{{ keystone_service_adminurl }}"
     insecure: "{{ keystone_service_adminuri_insecure }}"
-  tags:
-    - cloudkitty-domain
-    - cloudkitty-domain-setup
-    - cloudkitty-config
-    - cloudkitty-command-bin
+
 
 - name: Ensure cloudkitty endpoints
   keystone:
     command: "ensure_endpoint"
-    service_name: "cloudkitty"
-    service_type: "rating"
+    endpoint: "{{ keystone_service_adminurl }}"
+    login_user: "{{ keystone_admin_user_name }}"
+    login_password: "{{ keystone_auth_admin_password }}"
+    login_project_name: "{{ keystone_admin_tenant_name }}"
+    service_name: "{{ cloudkitty_service_name }}"
+    service_type: "{{ cloudkitty_service_type }}"
     region_name: "{{ cloudkitty_service_region }}"
     endpoint_list:
           - url: "{{ cloudkitty_service_publicurl }}"
@@ -96,10 +98,8 @@
     login_user: "{{ keystone_admin_user_name }}"
     login_password: "{{ keystone_auth_admin_password }}"
     login_project_name: "{{ keystone_admin_tenant_name }}"
-    endpoint: "{{ keystone_service_adminurl }}"
     insecure: "{{ keystone_service_adminuri_insecure }}"
-  tags:
-    - cloudkitty-domain
-    - cloudkitty-domain-setup
-    - cloudkitty-config
-    - cloudkitty-command-bin
+  register: add_service
+  until: add_service|success
+  retries: 5
+  delay: 10

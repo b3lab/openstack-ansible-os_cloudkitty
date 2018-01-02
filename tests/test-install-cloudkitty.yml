@@ -19,22 +19,14 @@
   become: true
   gather_facts: true
   pre_tasks:
-    - name: Ensure Rabbitmq vhost
-      rabbitmq_vhost:
-        name: "{{ cloudkitty_rabbitmq_vhost }}"
-        state: "present"
-      delegate_to: "{{ hostvars[groups['rabbitmq_all'][0]]['ansible_host'] }}"
-    - name: Ensure rabbitmq user
-      rabbitmq_user:
-        user: "{{ cloudkitty_rabbitmq_userid }}"
-        password: "{{ cloudkitty_rabbitmq_password }}"
-        vhost: "{{ cloudkitty_rabbitmq_vhost }}"
-        configure_priv: ".*"
-        read_priv: ".*"
-        write_priv: ".*"
-        state: "present"
-      delegate_to: "{{ hostvars[groups['rabbitmq_all'][0]]['ansible_host'] }}"
+    - include: common/ensure-rabbitmq.yml
+      vhost_name: "{{ clouditty_rabbitmq_vhost }}"
+      user_name: "{{ cloudkitty_rabbitmq_userid }}"
+      user_password: "{{ cloudkitty_rabbitmq_password }}"
+    - include: common/create-grant-db.yml
+      db_name: "{{ cloudkitty_database_name }}"
+      db_password: "{{ cloudkitty_container_db_password }}"
   roles:
-    - role: "os_cloudkitty"
+    - role: "{{ cloudkitty_rolename | default('os_cloudkitty') }}"
   vars_files:
     - common/test-vars.yml

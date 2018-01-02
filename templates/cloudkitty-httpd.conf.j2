@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+
+<VirtualHost *:{{ cloudkitty_service_port }}>
+    WSGIDaemonProcess cloudkitty-api lang='en_US.UTF-8' locale='en_US.UTF-8' user={{ cloudkitty_system_user_name }} group={{ cloudkitty_system_group_name }} processes={{ cloudkitty_wsgi_processes }} threads={{ cloudkitty_wsgi_threads }} display-name=%{GROUP}
+    WSGIProcessGroup cloudkitty-api
+    WSGIScriptAlias / /var/www/cgi-bin/cloudkitty/cloudkitty-api
+    WSGIApplicationGroup  %{GLOBAL}
+
+    <IfVersion >= 2.4>
+      ErrorLogFormat "%{cu}t %M"
+    </IfVersion>
+
+    LogLevel  {{  cloudkitty_apache_log_level }}
+    ErrorLog  /var/log/cloudkitty/cloudkitty-apache-error.log
+    CustomLog /var/log/cloudkitty/cloudkitty-access.log combined
+</VirtualHost>
+
+<Directory "/var/www/cgi-bin">
+        AllowOverride None
+        Options +ExecCGI -Includes
+        <IfModule !mod_access_compat.c>
+                Require all granted
+        </IfModule>
+        <IfModule mod_access_compat.c>
+                Order allow,deny
+                Allow from all
+        </IfModule>
+</Directory>

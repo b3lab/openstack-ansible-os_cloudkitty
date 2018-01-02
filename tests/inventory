@@ -1,20 +1,20 @@
 [all]
 localhost
-service1 ansible_host=10.100.100.2 ansible_become=True ansible_user=root
-openstack1 ansible_host=10.100.100.3 ansible_become=True ansible_user=root
+infra1
+openstack1
 
 [all_containers]
-service1
+infra1
 openstack1
 
 [rabbitmq_all]
-service1
+infra1
 
 [galera_all]
-service1
+infra1
 
 [memcached_all]
-service1
+infra1
 
 [service_all:children]
 rabbitmq_all
@@ -22,22 +22,18 @@ galera_all
 memcached_all
 
 [keystone_all]
+infra1
+
+[utility_all]
+infra1
+
+[cloudkitty_all]
 openstack1
+
+[cloudkitty_processor]
+openstack1
+
 
 [cloudkitty_api]
 openstack1
 
-[cloudkitty_engine]
-openstack1
-
-[cloudkitty_engine_container]
-openstack1
-
-[cloudkitty_apis_container]
-openstack1
-
-[cloudkitty_all:children]
-cloudkitty_api
-cloudkitty_apis_container
-cloudkitty_engine
-cloudkitty_engine_container

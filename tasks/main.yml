@@ -1,7 +1,4 @@
 ---
-# Copyright 2016, Rackspace US, Inc.
-#
-# (C) 2016 Michael Rice <michael.rice@rackspace.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+- name: Fail if our required secrets are not present
+  fail:
+    msg: "Please set the {{ item }} variable prior to applying this role."
+  when: (item is undefined) or (item is none)
+  with_items: "{{ cloudkitty_required_secrets }}"
+  tags:
+    - always
+
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
   with_first_found:
@@ -26,30 +32,33 @@
   tags:
     - always
 
-- name: Check init system
-  command: cat /proc/1/comm
-  changed_when: false
-  register: _pid1_name
-  tags:
-    - always
-
-- name: Set the name of pid1
-  set_fact:
-    pid1_name: "{{ _pid1_name.stdout }}"
-  tags:
-    - always
-
 - include: cloudkitty_pre_install.yml
-- include: cloudkitty_install.yml
-- include: cloudkitty_post_install.yml
+  tags:
+    - cloudkitty-install
 
-- include: cloudkitty_domain_setup.yml
-  when: inventory_hostname == groups['cloudkitty_all'][0]
+- include: cloudkitty_install.yml
+  tags:
+    - cloudkitty-install
+
+- include: cloudkitty_post_install.yml
+  tags:
+    - cloudkitty-config
+
+- include: "cloudkitty_init_{{ ansible_service_mgr }}.yml"
+  tags:
+    - cloudkitty-config
 
 - include: cloudkitty_db_setup.yml
   when: inventory_hostname == groups['cloudkitty_all'][0]
+  tags:
+    - cloudkitty-config
 
-- include: "cloudkitty_init_{{ ansible_service_mgr }}.yml"
+- include: cloudkitty_apache.yml
+  tags:
+    - cloudkitty-config
 
-- name: Flush handlers
-  meta: flush_handlers
+- include: cloudkitty_service_setup.yml
+  when: inventory_hostname == groups['cloudkitty_api'][0]
+  tags:
+    - cloudkitty-config
+
