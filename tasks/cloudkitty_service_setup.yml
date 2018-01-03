@@ -28,7 +28,7 @@
   register: add_service
   until: add_service|success
   retries: 5
-  delay:2
+  delay: 2
 
 - name: Ensure cloudkitty user
   keystone:
