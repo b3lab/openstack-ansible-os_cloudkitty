@@ -40,7 +40,7 @@
     - { path: "/etc/cloudkitty" }
     - { path: "{{ cloudkitty_system_user_home }}" }
     - { path: "{{ cloudkitty_system_user_home }}/.ssh", mode: "0700" }
-    - { path: "/var/cache/aodh", mode: "0700" }
+    - { path: "/var/cache/cloudkitty", mode: "0700" }
 
 - name: Create Apache mod_wsgi dirs
   file:

@@ -1,0 +1,4 @@
+- name: os_cloudkitty
+  scm: git
+  src: https://github.com/b3lab/openstack-ansible-os_cloudkitty.git
+  version: stable/pike

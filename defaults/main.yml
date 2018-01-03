@@ -29,12 +29,12 @@ cloudkitty_git_repo: https://git.openstack.org/openstack/cloudkitty
 cloudkitty_git_install_branch: stable/pike
 
 ## The packages to build from source (used in developer mode)
-aodh_developer_constraints:
+cloudkitty_developer_constraints:
   - "git+{{ cloudkitty_git_repo }}@{{ cloudkitty_git_install_branch }}#egg=cloudkitty"
 
 # Name of the virtual env to deploy into
 cloudkitty_venv_tag: untagged
-cloudkitty_bin: "/openstack/venvs/cloudkitty-{{ aodh_venv_tag }}/bin"
+cloudkitty_bin: "/openstack/venvs/cloudkitty-{{ cloudkitty_venv_tag }}/bin"
 
 # venv_download, even when true, will use the fallback method of building the
 # venv from scratch if the venv download fails.
@@ -50,15 +50,15 @@ cloudkitty_system_comment: cloudkitty system user
 cloudkitty_system_user_home: "/var/lib/{{ cloudkitty_system_user_name }}"
 
 ## DB info
-cloudkitty_database_name: aodh
-cloudkitty_database_user: aodh
+cloudkitty_database_name: cloudkitty
+cloudkitty_database_user: cloudkitty
 cloudkitty_db_type: "mysql+pymysql"
 cloudkitty_db_address: localhost
 cloudkitty_connection_string: "{{ cloudkitty_db_type }}://{{ cloudkitty_database_user }}:{{ cloudkitty_container_db_password }}@{{ cloudkitty_db_address }}/{{ cloudkitty_database_name }}?charset=utf8"
 
 ## RabbitMQ info
-cloudkitty_rabbitmq_userid: aodh
-cloudkitty_rabbitmq_vhost: /aodh
+cloudkitty_rabbitmq_userid: cloudkitty
+cloudkitty_rabbitmq_vhost: /cloudkitty
 cloudkitty_rabbitmq_servers: 127.0.0.1
 cloudkitty_rabbitmq_port: 5672
 cloudkitty_rabbitmq_use_ssl: False

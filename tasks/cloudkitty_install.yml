@@ -134,6 +134,6 @@
 - name: Record the venv tag deployed
   ini_file:
     dest: "/etc/ansible/facts.d/openstack_ansible.fact"
-    section: aodh
+    section: cloudkitty
     option: venv_tag
     value: "{{ cloudkitty_venv_tag }}"

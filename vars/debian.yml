@@ -40,7 +40,7 @@ cloudkitty_apache_default_sites:
   - "/etc/apache2/sites-enabled/000-default.conf"
 
 cloudkitty_apache_site_available: "/etc/apache2/sites-available/cloudkitty-httpd.conf"
-aodh_apache_site_enabled: "/etc/apache2/sites-enabled/cloudkitty-httpd.conf"
+cloudkitty_apache_site_enabled: "/etc/apache2/sites-enabled/cloudkitty-httpd.conf"
 
 cloudkitty_apache_conf: "/etc/apache2/apache2.conf"
 cloudkitty_apache_security_conf: "/etc/apache2/conf-available/security.conf"
