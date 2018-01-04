@@ -15,7 +15,7 @@ component_skel:
   cloudkitty_api:
     belongs_to:
       - cloudkitty_all
-  cloudkitty-processor:
+  cloudkitty_processor:
     belongs_to:
       - cloudkitty_all
 
@@ -25,7 +25,7 @@ container_skel:
       - cloudkitty-infra_containers
     contains:
       - cloudkitty_api
-      - cloudkitty-processor
+      - cloudkitty_processor
     properties:
       service_name: cloudkitty
 
