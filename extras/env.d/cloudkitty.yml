@@ -1,6 +1,4 @@
 ---
-# Copyright 2014, Rackspace US, Inc.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,19 +15,25 @@ component_skel:
   cloudkitty_api:
     belongs_to:
       - cloudkitty_all
-  cloudkitty_engine:
+  cloudkitty-processor:
     belongs_to:
       - cloudkitty_all
-
 
 container_skel:
   cloudkitty_container:
     belongs_to:
-      - infra_containers
-      - os-infra_containers
+      - cloudkitty-infra_containers
     contains:
       - cloudkitty_api
-      - cloudkitty_engine
+      - cloudkitty-processor
     properties:
       service_name: cloudkitty
-      container_release: trusty
+
+physical_skel:
+  cloudkitty-infra_containers:
+    belongs_to:
+      - all_containers
+  cloudkitty-infra_hosts:
+    belongs_to:
+      - hosts
+
