@@ -5,7 +5,7 @@
 use_stderr = False
 debug = {{ debug }}
 log_dir = /var/log/cloudkitty
-#notification_topics = {{ cloudkitty_notification_topics }}
+notification_topics = {{ cloudkitty_notification_topics }}
 
 ## RabbitMQ RPC
 transport_url = rabbit://{% for host in cloudkitty_rabbitmq_servers.split(',') %}{{ cloudkitty_rabbitmq_userid }}:{{ cloudkitty_rabbitmq_password }}@{{ host }}:{{ cloudkitty_rabbitmq_port }}{% if not loop.last %},{% else %}/{{ cloudkitty_rabbitmq_vhost }}{% endif %}{% endfor %}
@@ -27,7 +27,7 @@ services = compute, volume, network.bw.in, network.bw.out, network.floating, ima
 connection = {{ cloudkitty_connection_string }}
 
 [ks_auth]
-memcached_servers = {{ memcached_servers }}
+debug = {{ debug }}
 auth_uri = {{ keystone_service_internaluri }}
 project_domain_name = {{ cloudkitty_service_project_domain_id }}
 project_name = {{ cloudkitty_service_project_name }}
@@ -39,7 +39,16 @@ identity_uri = {{ keystone_service_adminurl }}
 auth_type = {{ cloudkitty_keystone_auth_plugin }}
 
 [keystone_authtoken]
-auth_section = ks_auth
+memcached_servers = {{ memcached_servers }}
+auth_uri = {{ keystone_service_internaluri }}
+project_domain_name = {{ cloudkitty_service_project_domain_id }}
+project_name = {{ cloudkitty_service_project_name }}
+user_domain_name = {{ cloudkitty_service_user_domain_id }}
+password = {{ cloudkitty_service_password }}
+username = {{ cloudkitty_service_user_name }}
+auth_url = {{ keystone_service_adminurl }}
+identity_uri = {{ keystone_service_adminurl }}
+auth_type = {{ cloudkitty_keystone_auth_plugin }}
 
 [keystone_fetcher]
 keystone_version = 3
@@ -51,11 +60,11 @@ ssl = {{ cloudkitty_rabbitmq_use_ssl }}
 [tenant_fetcher]
 backend = keystone
 
-[storage]
-backend = gnocchihybrid
-
-[storage_gnocchi]
-auth_section = ks_auth
-
 [gnocchi_collector]
 auth_section = ks_auth
+
+[output]
+pipeline = {{ cloudkitty_output_pipeline }}
+basepath = {{ cloudkitty_output_basepath }}
+backend = {{ cloudkitty_output_backend }}
+
